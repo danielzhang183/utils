@@ -28,12 +28,11 @@ export function throttle(
   let lastExec = 0
 
   function clearExistingTimer() {
-    if (timerId)
-      clearTimeout(timerId)
+    timerId && clearTimeout(timerId)
   }
 
-  function cancel(options: CancelOptions) {
-    const { upcomingOnly = false } = options || {}
+  function cancel(options: CancelOptions = {}) {
+    const { upcomingOnly = false } = options
     clearExistingTimer()
     cancelled = !upcomingOnly
   }
@@ -45,13 +44,11 @@ export function throttle(
       return
 
     const exec = () => {
-      lastExec = Date.now()
+      lastExec = +Date.now()
       callback(...args)
     }
 
-    const clear = () => {
-      timerId = undefined
-    }
+    const clear = () => (timerId = undefined)
 
     if (!noLeading && debounceMode && !timerId) {
       /*
@@ -109,8 +106,8 @@ export function throttle(
 export function debounce(
   delay: number,
   callback: Function,
-  options: DebounceOptions,
+  options: DebounceOptions = {},
 ) {
-  const { atBegin = false } = options || {}
+  const { atBegin = false } = options
   return throttle(delay, callback, { debounceMode: !!atBegin })
 }

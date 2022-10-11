@@ -1,6 +1,13 @@
 import Queue from './queue'
 
-export default function pLimit(concurrency: number) {
+export interface PLimtPromiseReturn {
+  (fn: Function, ...args: Parameters<any>[]): Promise<unknown>
+  activeCount: number
+  pendingCount: number
+  reset: () => void
+}
+
+export function pLimit(concurrency: number): PLimtPromiseReturn {
   if (!((Number.isInteger(concurrency) || concurrency === Number.POSITIVE_INFINITY) && concurrency > 0))
     throw new TypeError('Expected `concurrency` to be a number from 1 and up')
 
@@ -40,7 +47,7 @@ export default function pLimit(concurrency: number) {
     })()
   }
 
-  const generator = (fn: Function, ...args: Parameters<any>[]) => new Promise((resolve) => {
+  const generator = (fn: Function, ...args: Parameters<any>) => new Promise((resolve) => {
     enqueue(fn, resolve, args)
   })
 
@@ -51,15 +58,10 @@ export default function pLimit(concurrency: number) {
     pendingCount: {
       get: () => queue.size,
     },
-    clearQueue: {
+    reset: {
       value: () => queue.clear(),
     },
   })
 
-  return generator as {
-    (fn: Function, ...args: Parameters<any>[]): Promise<unknown>
-    activeCount: number
-    pendingCount: number
-    clearQueue: () => void
-  }
+  return generator as PLimtPromiseReturn
 }
